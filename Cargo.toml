@@ -1,0 +1,18 @@
+[package]
+name = "lsh-rust"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "64_bit"
+path = "src/main_64.rs"
+
+[[bin]]
+name = "128_bit"
+path = "src/main_128.rs"
+
+[dependencies]
+num-bigint = "0.4.6"
+num-traits = "0.2.19"
+rand = "0.9.0"
+solana-poseidon = "2.2.0"
