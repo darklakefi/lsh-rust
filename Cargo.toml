@@ -11,6 +11,10 @@ path = "src/main_64.rs"
 name = "128_bit"
 path = "src/main_128.rs"
 
+[[bin]]
+name = "128_bit_plus"
+path = "src/main_128_plus.rs"
+
 [dependencies]
 num-bigint = "0.4.6"
 num-traits = "0.2.19"

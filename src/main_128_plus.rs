@@ -6,7 +6,7 @@ fn hamming_distance(a: u64, b: u64) -> u32 {
     (a ^ b).count_ones()
 }
 
-fn hamming_distance_128(a: u128, b: u128) -> u32 {
+fn hamming_distance_128(a: u64, b: u64) -> u32 {
     (a ^ b).count_ones()
 }
 
@@ -17,15 +17,15 @@ fn hamming_distance_string(a: &str, b: &str) -> u32 {
         .count() as u32
 }
 
-fn generate_lsh_rust(input: &[u64; 3]) -> u128 {
-    let mut hash_res: u128 = 0;
+fn generate_lsh_rust(input: &[u64; 3]) -> String {
+    let mut hash_res: String = "".to_string();
 
     let salt = 0;
 
     let salt_bytes = u64::to_le_bytes(salt);
 
 
-    for i in 0..128 {
+    for i in 0..1024 {
         let index_bytes = u64::to_le_bytes(i);
         let zero_bytes = u64::to_le_bytes(0);
         let one_bytes = u64::to_le_bytes(1);
@@ -64,15 +64,17 @@ fn generate_lsh_rust(input: &[u64; 3]) -> u128 {
         let final_sum = mult0 + mult1 + mult2;
 
         if final_sum < 0 {
-            hash_res |= 1 << 127-i;
+            hash_res.push('1');
+        } else {
+            hash_res.push('0');
         }
-
     }
 
     hash_res
 }
 
-fn get_hash(is_swap_x_to_y: bool, balance_x: u64, balance_y: u64, input_amount: u64) -> u128 {
+
+fn get_hash(is_swap_x_to_y: bool, balance_x: u64, balance_y: u64, input_amount: u64) -> String {
     let k = balance_x as u128 * balance_y as u128;
 
     let new_balance_x;
@@ -113,9 +115,9 @@ fn fake_trade_to_x(balance_x: u64, balance_y: u64, input_amount: u64) -> (u64, u
 }
 
 fn main() {
-    let input_amount = 100;
-    let mut balance_x = 1000000;
-    let mut balance_y = 2000000;
+    let input_amount = 10000000;
+    let mut balance_x = 100000000000;
+    let mut balance_y = 200000000000000;
 
     // user trading to y direction
     let is_swap_x_to_y = true;
@@ -127,11 +129,10 @@ fn main() {
         let mut worse_balance_x = balance_x;
         let mut worse_balance_y = balance_y;
 
-
         let mut file = OpenOptions::new()
             .create(true)
             .append(true)
-            .open(format!("hamming-128bit-res-{}.csv", i))
+            .open(format!("hamming-128bit-plus-res-{}.csv", i))
             .unwrap();
 
         writeln!(file, "better,worse").unwrap();
@@ -139,18 +140,18 @@ fn main() {
         let mut csv: String = "".to_string();
 
         for t in 0..64 {
-            (better_balance_x, better_balance_y) = fake_trade_to_x(better_balance_x, better_balance_y, 100);
-            (worse_balance_x, worse_balance_y) = fake_trade_to_y(worse_balance_x, worse_balance_y, 100);
+            (better_balance_x, better_balance_y) = fake_trade_to_x(better_balance_x, better_balance_y, 1000000);
+            (worse_balance_x, worse_balance_y) = fake_trade_to_y(worse_balance_x, worse_balance_y, 1000000);
 
             let better_hash = get_hash(is_swap_x_to_y, better_balance_x, better_balance_y, input_amount);
             let worse_hash = get_hash(is_swap_x_to_y, worse_balance_x, worse_balance_y, input_amount);
 
-            let better_distance = hamming_distance_128(base_hash, better_hash);
-            let worse_distance = hamming_distance_128(base_hash, worse_hash);
+            let better_distance = hamming_distance_string(&base_hash, &better_hash);
+            let worse_distance = hamming_distance_string(&base_hash, &worse_hash);
 
             csv.push_str(&format!("{},{}\n", better_distance, worse_distance));
         }
-
+        
         writeln!(file, "{}", csv).unwrap();
 
         // reduce to total token reserves

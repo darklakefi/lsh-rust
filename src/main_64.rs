@@ -51,7 +51,6 @@ fn generate_lsh_rust(input: &[u64; 3]) -> u64 {
         let mult1: i128 = input[1] as i128 * projection[1] as i128;
         let mult2: i128 = input[2] as i128 * projection[2] as i128;
 
-        // assign initial values
         let final_sum = mult0 + mult1 + mult2;
 
         if final_sum < 0 {
@@ -219,6 +218,8 @@ fn main() {
 
         writeln!(file, "better,worse").unwrap();
 
+        let mut csv: String = "".to_string();
+
         for t in 0..64 {
             (better_balance_x, better_balance_y) = fake_trade_to_x(better_balance_x, better_balance_y, 100);
             (worse_balance_x, worse_balance_y) = fake_trade_to_y(worse_balance_x, worse_balance_y, 100);
@@ -226,8 +227,13 @@ fn main() {
             let better_hash = get_hash(is_swap_x_to_y, better_balance_x, better_balance_y, input_amount, false);
             let worse_hash = get_hash(is_swap_x_to_y, worse_balance_x, worse_balance_y, input_amount, false);
             
-            writeln!(file, "{},{}", hamming_distance(base_hash, better_hash), hamming_distance(base_hash, worse_hash)).unwrap();
+            let better_distance = hamming_distance(base_hash, better_hash);
+            let worse_distance = hamming_distance(base_hash, worse_hash);
+
+            csv.push_str(&format!("{},{}\n", better_distance, worse_distance));
         }
+
+        writeln!(file, "{}", csv).unwrap();
 
         // reduce to total token reserves
         balance_x /= 10;
