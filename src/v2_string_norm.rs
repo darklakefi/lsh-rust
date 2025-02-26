@@ -31,29 +31,23 @@ fn split_u64_le(value: u64) -> [u8; 8] {
     value.to_le_bytes()
 }
 
-fn generate_lsh_rust(input: &[u64; 3]) -> String {
+fn generate_lsh_rust(inputs: &[u64; 4]) -> String {
     let mut hash_res: String = "".to_string();
 
     let salt = 0;
 
     let salt_bytes = u64::to_le_bytes(salt);
 
-    let mut input_bytes = Vec::new();
-    for &value in input.iter() {
-        input_bytes.extend_from_slice(&split_u64_le(value));
-    }
+    let normalized_inputs = normalize_vector(&inputs.iter().map(|&x| x as f64).collect());
 
 
-    // let normalized_input = normalize_vector(&input.iter().map(|&x| x as f64).collect());
-
-    println!("input_bytes: {:?}", input_bytes);
-
+    // println!("groupped: {:?}", groupped);
     for i in 0..64 {
         let index_bytes = u64::to_le_bytes(i);
 
         let mut input_index = 0;
         let mut final_sum = 0;
-        for &input_byte in input_bytes.iter() {
+        for &input in [normalized_inputs[1], normalized_inputs[3]].iter() {
 
             let input_index_bytes = u64::to_le_bytes(input_index);
             input_index += 1;
@@ -66,9 +60,42 @@ fn generate_lsh_rust(input: &[u64; 3]) -> String {
             let mut array0 = [0u8; 8];
             array0.copy_from_slice(&pos_hash_bytes0[..8]);
 
-            let projection: i64 = i64::from_le_bytes(array0);
+            let projection = i64::from_le_bytes(array0);
 
-            let mult0 = input_byte as i128 * projection as i128;
+            let mult0 = input as i128 * projection as i128;
+
+            final_sum += mult0;
+        }
+
+        if final_sum < 0 {
+            hash_res.push('1');
+        } else {
+            hash_res.push('0');
+        }
+    }
+
+    for i in 0..64 {
+        let index_bytes = u64::to_le_bytes(i);
+
+        let mut input_index = 0;
+        let mut final_sum = 0;
+        for &input in [normalized_inputs[0], normalized_inputs[2]].iter() {
+
+            let input_index_bytes = u64::to_le_bytes(input_index);
+            input_index += 1;
+
+            let dim0: &[&[u8]] = &[&salt_bytes, &index_bytes, &input_index_bytes];
+
+            let pos_hash0 = hashv(Parameters::Bn254X5, Endianness::LittleEndian, &dim0).unwrap();
+            let pos_hash_bytes0 = pos_hash0.to_bytes();
+
+            let mut array0 = [0u8; 8];
+            array0.copy_from_slice(&pos_hash_bytes0[..8]);
+
+            let projection = i64::from_le_bytes(array0);
+
+            let mult0 = input as i128 * projection as i128;
+
             final_sum += mult0;
         }
 
@@ -100,10 +127,8 @@ fn get_hash(is_swap_x_to_y: bool, balance_x: u64, balance_y: u64, input_amount: 
         output = balance_x - new_balance_x;
     }
 
-    // println!("output: {} | new_balance_x: {} | new_balance_y: {}", output, new_balance_x, new_balance_y);
-
     // salt is 0 for now
-    let input_vector: [u64; 3] = [new_balance_x, new_balance_y, output]; // Example input
+    let input_vector: [u64; 4] = [balance_x, balance_y, new_balance_x, new_balance_y]; // Example input
     let lsh_hash = generate_lsh_rust(&input_vector);
     lsh_hash
 }
@@ -133,7 +158,9 @@ fn main() {
 
     // user trading to y direction
     let is_swap_x_to_y = true;
-    for i in 0..1 {
+    let mut front_run_input= 100;
+
+    for i in 0..10 {
         let base_hash = get_hash(is_swap_x_to_y, balance_x, balance_y, input_amount);
 
         let mut better_balance_x = balance_x;
@@ -154,9 +181,9 @@ fn main() {
         let mut last_better_hash = "".to_string();
         let mut last_worse_hash = "".to_string();
 
-        for t in 0..64 {
-            (better_balance_x, better_balance_y) = fake_trade_to_x(better_balance_x, better_balance_y, 100000000000);
-            (worse_balance_x, worse_balance_y) = fake_trade_to_y(worse_balance_x, worse_balance_y, 100000000000);
+        for t in 0..10 {
+            (better_balance_x, better_balance_y) = fake_trade_to_x(better_balance_x, better_balance_y, front_run_input);
+            (worse_balance_x, worse_balance_y) = fake_trade_to_y(worse_balance_x, worse_balance_y, front_run_input);
 
             let better_hash = get_hash(is_swap_x_to_y, better_balance_x, better_balance_y, input_amount);
             let worse_hash = get_hash(is_swap_x_to_y, worse_balance_x, worse_balance_y, input_amount);
@@ -176,8 +203,6 @@ fn main() {
         
         writeln!(file, "{}", csv).unwrap();
 
-        // reduce to total token reserves
-        balance_x /= 10;
-        balance_y /= 10;
+        front_run_input *= 10;
     }
 }

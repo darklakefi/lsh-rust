@@ -10,8 +10,16 @@ Mirroring circuit LSH for faster result analysis.
 
 ## Scripts
 
+Multiple scripts, no guarantee that all run as older we're abandoned in favor of newer versions.
+
 To generate 64 projection hashes and save comparisons
 `cargo run --bin 64_bit`
 
 To generate 128 projection hashes and save comparisons
 `cargo run --bin 128_bit`
+
+... Look up cargo.toml for script names and run as above
+
+Latest one
+
+`cargo run --bin v3_splitting_weighted

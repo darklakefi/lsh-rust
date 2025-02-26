@@ -15,7 +15,28 @@ path = "src/main_128.rs"
 name = "128_bit_plus"
 path = "src/main_128_plus.rs"
 
+[[bin]]
+name = "128_bit_plus_v2"
+path = "src/main_128_plus_v2.rs"
+
+[[bin]]
+name = "v2_string_norm"
+path = "src/v2_string_norm.rs"
+
+[[bin]]
+name = "v2_test_data_4_inputs"
+path = "src/v2_test_data_4_inputs.rs"
+
+[[bin]]
+name = "v3_splitting_weighted"
+path = "src/v3_splitting_weighted.rs"
+
+[[bin]]
+name = "v3_splitting_weighted_norm"
+path = "src/v3_splitting_weighted_norm.rs"
+
 [dependencies]
+itertools = "0.14.0"
 num-bigint = "0.4.6"
 num-traits = "0.2.19"
 rand = "0.9.0"
