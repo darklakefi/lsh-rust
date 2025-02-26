@@ -22,4 +22,6 @@ To generate 128 projection hashes and save comparisons
 
 Latest one
 
-`cargo run --bin v3_splitting_weighted
+Splits u64 and applies weights to u64 pieces.
+
+`cargo run --bin v3_splitting_weighted`
