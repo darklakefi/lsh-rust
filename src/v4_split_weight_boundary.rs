@@ -107,7 +107,7 @@ fn generate_lsh_rust(inputs: &[u64; 1]) -> String {
 }
 
 
-// slippage = 10,000 = 100%
+// calculates the k=x*y constant and returns the hash and the received amount
 fn get_hash(is_swap_x_to_y: bool, balance_x: u64, balance_y: u64, input_amount: u64) -> (String, u64) {
     let k = balance_x as u128 * balance_y as u128;
 
@@ -135,6 +135,7 @@ fn get_hash(is_swap_x_to_y: bool, balance_x: u64, balance_y: u64, input_amount: 
 }
 
 // slippage = 10,000 = 100%
+// sames as get_hash but returns two hashes and two outputs (and the original "center" output)
 fn get_boundary_hashes(is_swap_x_to_y: bool, balance_x: u64, balance_y: u64, input_amount: u64, slippage: u64) -> ([String; 2], u64, u64, u64) {
     let k = balance_x as u128 * balance_y as u128;
 
@@ -206,12 +207,14 @@ fn main() {
     .open(format!("v4-split-weight-bound-1-8.csv"))
     .unwrap();
 
+    // get two LSH hashes of boundaries arround the current receive token amount (+/- slippage)
     let ([base_upper_hash, base_lower_hash], base_upper_output, base_lower_output, base_output) = get_boundary_hashes(is_swap_x_to_y, balance_x, balance_y, input_amount, slippage);
     println!("generating base");
     println!("base_upper_output: {}", base_upper_output);
     println!("base_lower_output: {}", base_lower_output);
     println!("base_output:       {}", base_output);
     
+    // get LSH hash of the receive token amount
     let (base_hash, base_output_2) = get_hash(is_swap_x_to_y, balance_x, balance_y, input_amount);
 
     let base_hash_distance = hamming_distance_string(&base_upper_hash, &base_lower_hash);
@@ -225,6 +228,7 @@ fn main() {
     writeln!(file, "low_hash:   {}", base_lower_hash).unwrap();
 
 
+    // loop for major front-run token amount increase (front_run_base_amount = front_run_base_amount*10)
     for i in 0..12 {
         println!("---Balance RESET---");
         let mut front_run_input = front_run_base;
@@ -234,9 +238,7 @@ fn main() {
 
         let mut csv: String = "".to_string();
 
-        // let mut last_better_hash = "".to_string();
-        // let mut last_worse_hash = "".to_string();
-
+        // loop for minor front-run token amount increase (front_run = front_run + front_run_base_amount)
         for t in 0..9 {
             println!("front_run_input: {}", front_run_input);
 
@@ -246,18 +248,11 @@ fn main() {
             let (better_hash, better_output) = get_hash(is_swap_x_to_y, better_balance_x, better_balance_y, input_amount);
             let (worse_hash, worse_output) = get_hash(is_swap_x_to_y, worse_balance_x, worse_balance_y, input_amount);
 
-            // if (better_hash != last_better_hash) {
-            //     println!("is better equal: {} | is worse equal: {}", better_hash == last_better_hash, worse_hash == last_worse_hash);
-            // }
-
             let better_distance_to_upper = hamming_distance_string(&base_upper_hash, &better_hash);
             let better_distance_to_lower = hamming_distance_string(&base_lower_hash, &better_hash);
 
             let worse_distance_to_upper = hamming_distance_string(&base_upper_hash, &worse_hash);
             let worse_distance_to_lower = hamming_distance_string(&base_lower_hash, &worse_hash);
-
-            // last_better_hash = better_hash;
-            // last_worse_hash = worse_hash;
             
             csv.push_str(
                 &format!(
@@ -281,9 +276,6 @@ fn main() {
         
         writeln!(file, "{}", csv).unwrap();
 
-        // reduce to total token reserves
-        // balance_x /= 10;
-        // balance_y /= 10;
         front_run_base = 100 * 10u64.pow(i + 1);
     }
 }
