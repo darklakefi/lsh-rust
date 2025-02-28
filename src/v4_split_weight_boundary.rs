@@ -60,7 +60,7 @@ fn generate_lsh_rust(inputs: &[u64; 1]) -> String {
 
     let lsh_inputs = inputs;
 
-    // println!("groupped: {:?}", groupped);
+    // projection count (generally recommended 512/1024 for higher precision but lower performance)
     for i in 0..128 {
         let index_bytes = u64::to_le_bytes(i);
 
