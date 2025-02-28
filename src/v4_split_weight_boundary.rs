@@ -135,7 +135,7 @@ fn get_hash(is_swap_x_to_y: bool, balance_x: u64, balance_y: u64, input_amount: 
 }
 
 // slippage = 10,000 = 100%
-fn get_hash_boundaries(is_swap_x_to_y: bool, balance_x: u64, balance_y: u64, input_amount: u64, slippage: u64) -> ([String; 2], u64, u64, u64) {
+fn get_boundary_hashes(is_swap_x_to_y: bool, balance_x: u64, balance_y: u64, input_amount: u64, slippage: u64) -> ([String; 2], u64, u64, u64) {
     let k = balance_x as u128 * balance_y as u128;
 
     let new_balance_x;
@@ -206,7 +206,7 @@ fn main() {
     .open(format!("v4-split-weight-bound-1-8.csv"))
     .unwrap();
 
-    let ([base_upper_hash, base_lower_hash], base_upper_output, base_lower_output, base_output) = get_hash_boundaries(is_swap_x_to_y, balance_x, balance_y, input_amount, slippage);
+    let ([base_upper_hash, base_lower_hash], base_upper_output, base_lower_output, base_output) = get_boundary_hashes(is_swap_x_to_y, balance_x, balance_y, input_amount, slippage);
     println!("generating base");
     println!("base_upper_output: {}", base_upper_output);
     println!("base_lower_output: {}", base_lower_output);
