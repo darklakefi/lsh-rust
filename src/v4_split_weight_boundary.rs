@@ -194,7 +194,7 @@ fn main() {
     let mut balance_x = 10000000000000;
     let mut balance_y = 80000000000000;
 
-    let slippage = 200; // 5% (10,000 = 100%)
+    let slippage = 500; // 5% (10,000 = 100%)
 
     // user trading to y direction
     let is_swap_x_to_y = true;
