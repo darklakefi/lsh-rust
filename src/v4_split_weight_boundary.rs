@@ -3,87 +3,11 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use num_bigint::BigInt;
 
-fn hamming_distance(a: u64, b: u64) -> u32 {
-    (a ^ b).count_ones()
-}
-
-fn hamming_distance_128(a: u64, b: u64) -> u32 {
-    (a ^ b).count_ones()
-}
-
 fn hamming_distance_string(a: &str, b: &str) -> u32 {
     a.chars()
         .zip(b.chars())
         .filter(|(char_a, char_b)| char_a != char_b)
         .count() as u32
-}
-
-fn normalize_vector(v: &Vec<f64>) -> Vec<f64> {
-    let norm: f64 = v.iter().map(|&x| x * x).sum::<f64>().sqrt();
-    
-    if norm == 0.0 {
-        v.clone() // Avoid division by zero
-    } else {
-        v.iter().map(|&x| x / norm).collect()
-    }
-}
-
-fn split_u64_le(value: u64) -> [u8; 8] {
-    value.to_le_bytes()
-}
-
-fn split_u64_gradual(value: u64) -> [u64; 6] {
-    let mut remaining = value;
-    
-    // Define the bit sizes for each segment
-    let bit_sizes = [1, 2, 4, 8, 16, 33];
-    let mut pieces = [0u64; 6];
-
-    // Start from MSB to LSB
-    let mut shift = 64;
-    
-    for (i, &size) in bit_sizes.iter().enumerate() {
-        shift -= size; // Shift the bit window
-        pieces[i] = (remaining >> shift) & ((1 << size) - 1); // Extract the segment
-    }
-
-    pieces
-}
-
-fn split_u64_into_64(value: u64) -> [u64; 64] {
-    let mut results = [0u64; 64]; // Array to store results
-
-    for i in 0..64 {
-        let shift = 64 - (i + 1); // Compute shift to extract MSB-first bits
-        if i == 63 {
-            results[i] = value; // Last iteration takes the full value
-        } else {
-            results[i] = (value >> shift) & ((1u64 << (i + 1)) - 1);
-        }
-    }
-
-    results
-}
-
-fn split_u64_with_max_bits(value: u64, max_bits: u32) -> Vec<u64> { // increasing 
-    assert!(max_bits <= 64, "max_bits must be between 0 and 64");
-    // println!("value: {} | max_bits: {}", value, max_bits);
-
-    // let total_bits = 64 - max_bits; // Number of bits to consider
-    let mut results = Vec::with_capacity(max_bits as usize); // Store results dynamically
-
-    for i in 0..max_bits {
-        let shift = max_bits - (i + 1); // Compute shift from MSB
-        let mask = if i == max_bits - 1 {
-            ((1u64 << (max_bits + 1)) - 1)
-        } else {
-            (1u64 << (i + 1)) - 1 // Create bit mask for current segment
-        };
-        // println!("shift: {} | mask: {:b}", shift, mask);
-        results.push((value >> shift) & mask);
-    }
-
-    results
 }
 
 fn split_u64_into_weighted_nibbles(value: u64, max_bits: u32, cut_off_index: u32) -> Vec<u64> {
@@ -126,90 +50,6 @@ fn split_u64_into_weighted_nibbles(value: u64, max_bits: u32, cut_off_index: u32
     results
 }
 
-fn split_u64_into_nibbles(value: u64, max_bits: u32, cut_off_index: u32) -> Vec<u64> {
-    // println!("value: {} | max_bits: {}", value, max_bits);
-
-    assert!(max_bits <= 64, "max_bits must be between 0 and 64");
-
-    let num_chunks = (max_bits + 3) / 4; // Number of 4-bit segments
-    let max_bits_rounded = num_chunks * 4;
-    let mut results = Vec::with_capacity(num_chunks as usize);
-
-    // println!("num_chunks: {}", num_chunks);
-
-    for i in 0..num_chunks {
-        if (i < cut_off_index) {
-            results.push(0);
-            continue;
-        }
-
-        let shift = max_bits_rounded - (i + 1) * 4; // Compute bit shift from MSB
-        // println!("i: {} | shift {}", i, shift);
-
-        let nibble = if shift >= 0 {
-            (value >> shift) & 0xF // Extract 4-bit segment
-        } else {
-            0 // If out of range, use 0
-        };
-
-        // if nibble == 0 {
-        //     results.push(1);
-        // } else {
-        results.push(nibble);
-        // }
-    }
-
-    results
-}
-
-
-fn split_u64_into_weighted_bit_pairs(value: u64, max_bits: u32) -> Vec<u64> {
-    // println!("value: {} | max_bits: {}", value, max_bits);
-
-    assert!(max_bits <= 64, "max_bits must be between 0 and 64");
-
-    let num_chunks = (max_bits + 1) / 2; // Number of 4-bit segments
-    let max_bits_rounded = num_chunks * 2;
-    let mut results = Vec::with_capacity(num_chunks as usize);
-
-    // println!("num_chunks: {}", num_chunks);
-
-    for i in 0..num_chunks {
-        let shift = max_bits_rounded - (i + 1) * 2; // Compute bit shift from MSB
-        // println!("i: {} | shift {}", i, shift);
-
-        let pair = if shift >= 0 {
-            (value >> shift) & 0x3 // Extract 4-bit segment
-        } else {
-            0 // If out of range, use 0
-        };
-
-        let weight = 1 << (num_chunks - i); // Weight = 2^i
-        results.push(pair * weight);
-    }
-
-    results
-}
-
-fn split_u64_into_weighted_bits(value: u64) -> [u64; 64] {
-    let mut result = [0u64; 64]; // Array to store weighted bit values
-
-    for i in 0..64 {
-        let bit = (value >> i) & 1; // Extract the i-th bit (starting from LSB)
-        let weight = 1 << i; // Compute weight as 2^i
-        result[i] = bit * weight; // Multiply bit by its weight
-    }
-
-    result
-}
-
-fn bits_needed(n: u64) -> u32 {
-    if n == 0 {
-        1 // At least 1 bit is needed to store 0
-    } else {
-        64 - n.leading_zeros() // Number of bits required
-    }
-}
 
 fn generate_lsh_rust(inputs: &[u64; 1]) -> String {
     let mut hash_res: String = "".to_string();
