@@ -35,6 +35,11 @@ path = "src/v3_splitting_weighted.rs"
 name = "v3_splitting_weighted_norm"
 path = "src/v3_splitting_weighted_norm.rs"
 
+[[bin]]
+name = "v4_split_weight_boundary"
+path = "src/v4_split_weight_boundary.rs"
+
+
 [dependencies]
 itertools = "0.14.0"
 num-bigint = "0.4.6"
