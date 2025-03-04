@@ -28,10 +28,6 @@ name = "v2_test_data_4_inputs"
 path = "src/v2_test_data_4_inputs.rs"
 
 [[bin]]
-name = "v3_splitting_weighted"
-path = "src/v3_splitting_weighted.rs"
-
-[[bin]]
 name = "v3_splitting_weighted_norm"
 path = "src/v3_splitting_weighted_norm.rs"
 
@@ -39,10 +35,60 @@ path = "src/v3_splitting_weighted_norm.rs"
 name = "v4_split_weight_boundary"
 path = "src/v4_split_weight_boundary.rs"
 
+[[bin]]
+name = "v4_split_weight_boundary_norm"
+path = "src/v4_split_weight_boundary_norm.rs"
+
+[[bin]]
+name = "v4_split_multi_boundary"
+path = "src/v4_split_multi_boundary.rs"
+
+[[bin]]
+name = "v4_split_split_boundary"
+path = "src/v4_split_split_boundary.rs"
+
+[[bin]]
+name = "v4_split_binary_boundary"
+path = "src/v4_split_binary_boundary.rs"
+
+[[bin]]
+name = "v4_split_binary_wma_boundary"
+path = "src/v4_split_binary_wma_boundary.rs"
+
+[[bin]]
+name = "v5_back_to_monke"
+path = "src/v5_back_to_monke.rs"
+
+[[bin]]
+name = "v5_back_to_monke_rand"
+path = "src/v5_back_to_monke_rand.rs"
+
+[[bin]]
+name = "v5_split_binary_sine_boundary"
+path = "src/v5_split_binary_sine_boundary.rs"
+
+[[bin]]
+name = "v6_sequence"
+path = "src/v6_sequence.rs"
+
+[[bin]]
+name = "v6_moving_weight_boundary"
+path = "src/v6_moving_weight_boundary.rs"
+
+# testing
+[[bin]]
+name = "test_sine"
+path = "src/test_sine.rs"
+
+[[bin]]
+name = "test_pos"
+path = "src/test_pos.rs"
+
 
 [dependencies]
 itertools = "0.14.0"
 num-bigint = "0.4.6"
 num-traits = "0.2.19"
 rand = "0.9.0"
+rand_chacha = "0.9.0"
 solana-poseidon = "2.2.0"
