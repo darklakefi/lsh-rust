@@ -72,6 +72,10 @@ name = "v6_sequence"
 path = "src/v6_sequence.rs"
 
 [[bin]]
+name = "v6_checkpoints"
+path = "src/v6_checkpoints.rs"
+
+[[bin]]
 name = "v6_moving_weight_boundary"
 path = "src/v6_moving_weight_boundary.rs"
 
